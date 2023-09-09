@@ -9,8 +9,42 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "13.4.19",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@react-spring/web": "^9.7.3",
+    "@types/d3-array": "^2.9.0",
+    "@types/d3-time-format": "^3.0.0",
+    "@types/node": "17.0.2",
+    "@types/react": "17.0.2",
+    "@types/react-dom": "^17.0.0",
+    "@types/styled-components": "^5.1.9",
+    "@visx/axis": "^3.3.0",
+    "@visx/clip-path": "^3.3.0",
+    "@visx/curve": "^3.3.0",
+    "@visx/event": "^3.3.0",
+    "@visx/grid": "^3.3.0",
+    "@visx/group": "^3.3.0",
+    "@visx/marker": "^3.3.0",
+    "@visx/mock-data": "^3.3.0",
+    "@visx/scale": "^3.3.0",
+    "@visx/shape": "^3.3.0",
+    "@visx/tooltip": "^3.3.0",
+    "@visx/xychart": "^3.3.0",
+    "@visx/zoom": "^3.3.0",
+    "d3": "^7.8.5",
+    "d3-array": "^3.2.4",
+    "d3-axis": "^3.0.0",
+    "d3-time-format": "^3.0.0",
+    "next": "12.1.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "react-query": "^3.19.0",
+    "react-scripts": "4.0.3",
+    "react-use-measure": "^2.0.4",
+    "resize-observer-polyfill": "^1.5.1",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "prettier": "3.0.2"
   }
 }
