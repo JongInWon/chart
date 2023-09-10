@@ -1,11 +1,12 @@
 import * as d3 from "d3";
 import React, { useEffect, useRef, useState } from "react";
-import { LineChart, Price, Tooltip } from "./styles";
+import { LineChart, Price, Tooltip, Wrapper } from "./styles";
 import appleStock, { AppleStock } from "@visx/mock-data/lib/mocks/appleStock";
 import { IDimension } from "./types";
 
 const D3Zoom = ({ data, id = "myZoomableLineChart", width, height }) => {
   const ref = useRef();
+  const tooltipRef = useRef(null);
   const [currentZoomState, setCurrentZoomState] = useState();
 
   useEffect(() => {
@@ -102,7 +103,7 @@ const D3Zoom = ({ data, id = "myZoomableLineChart", width, height }) => {
       .call(xAxis)
       .style("transform", `translateY(${dimensions.ctrHeight}px)`);
 
-    const tooltip = d3.select("#tooltip");
+    const tooltip = d3.select(tooltipRef.current);
 
     const tooltipDot = ctr
       .append("circle")
@@ -137,7 +138,7 @@ const D3Zoom = ({ data, id = "myZoomableLineChart", width, height }) => {
         tooltip
           .style("display", "block")
           .style("top", yScale(yAccessor(stock)) - 20 + "px")
-          .style("left", xScale(xAccessor(stock)) + "px");
+          .style("left", xScale(xAccessor(stock)) - 90 + "px");
 
         const dateFormat = d3.timeFormat("%B %-d, %Y");
 
@@ -153,10 +154,10 @@ const D3Zoom = ({ data, id = "myZoomableLineChart", width, height }) => {
     // zoom
     const zoomBehavior = d3
       .zoom()
-      .scaleExtent([0.5, 4])
+      .scaleExtent([1, 5])
       .translateExtent([
-        [-50, dimensions.margins],
-        [dimensions.ctrWidth + 50, dimensions.ctrHeight],
+        [-100, dimensions.margins],
+        [dimensions.ctrWidth + 100, dimensions.ctrHeight],
       ])
       .on("zoom", (event) => {
         const zoomState = event.transform;
@@ -168,24 +169,24 @@ const D3Zoom = ({ data, id = "myZoomableLineChart", width, height }) => {
 
   return (
     <>
-      <div style={{ marginBottom: "2rem" }}>
+      <Wrapper>
         <LineChart ref={ref}>
           <g className="container">
             <defs>
               <clipPath id={id}>
-                <rect x="0" y="0" width="100%" height="100%" />
+                <rect x="0" y="-5" width="900" height="405" />
               </clipPath>
             </defs>
-            <g className="content" clipPath={`url(#${id})`}></g>
+            <g className="content" clipPath={`url(#${id})`} />
             <g className="x-axis" />
             <g className="y-axis" />
-            <Tooltip id="tooltip">
-              <Price className="price"></Price>
-              <div className="date"></div>
-            </Tooltip>
           </g>
         </LineChart>
-      </div>
+        <Tooltip ref={tooltipRef} id="tooltip">
+          <Price className="price"></Price>
+          <div className="date"></div>
+        </Tooltip>
+      </Wrapper>
     </>
   );
 };

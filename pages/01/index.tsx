@@ -13,7 +13,7 @@ const data = [
   { date: "2019-07-11", close: 208.74 },
   { date: "2020-05-11", close: 228.74 },
   { date: "2022-06-11", close: 258.74 },
-  { date: "2023-12-11", close: 298.74 },
+  { date: "2023-9-11", close: 298.74 },
 ];
 
 const Test = () => {

@@ -5,7 +5,7 @@ export const Tooltip = styled.div`
   position: absolute;
   padding: 10px;
   background-color: #fff;
-  display: none;
+  display: block;
   pointer-events: none;
 `;
 
@@ -14,8 +14,11 @@ export const Price = styled.div`
 `;
 
 export const LineChart = styled.svg`
-  margin: 25px auto;
-  width: 1000px;
   position: relative;
+  width: 1000px;
   background-color: #f7f7f7;
+`;
+
+export const Wrapper = styled.div`
+  position: relative;
 `;
