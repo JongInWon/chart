@@ -5,7 +5,7 @@ import appleStock, { AppleStock } from "@visx/mock-data/lib/mocks/appleStock";
 import { IDimension } from "./types";
 
 const D3Zoom = ({ data, id = "myZoomableLineChart", width, height }) => {
-  const ref = useRef(null);
+  const ref = useRef();
   const [currentZoomState, setCurrentZoomState] = useState();
 
   useEffect(() => {
@@ -52,19 +52,30 @@ const D3Zoom = ({ data, id = "myZoomableLineChart", width, height }) => {
       .range([0, dimensions.ctrWidth]);
 
     if (currentZoomState) {
-      const newXScale = currentZoomState.rescaleX(xScale);
+      let newXScale = currentZoomState.rescaleX(xScale);
+
+      let [start, end] = newXScale.domain();
+      let startIndex = d3.bisectLeft(data.map(xAccessor), start);
+      let endIndex = d3.bisectLeft(data.map(xAccessor), end);
+      startIndex = Math.max(0, startIndex);
+      endIndex = Math.min(data.length - 1, endIndex);
+      let slicedData = data.slice(startIndex, endIndex + 1);
+      let [yMin, yMax] = d3.extent(slicedData, yAccessor);
       xScale.domain(newXScale.domain());
+      yScale.domain([yMin, yMax]);
     }
 
     const lineGenerator = d3
       .line()
       .y((d) => yScale(yAccessor(d)))
-      .x((d) => xScale(xAccessor(d)!)); // 라인의 각 지점의 x 좌표를 계산
+      .x((d) => xScale(xAccessor(d))); // 라인의 각 지점의 x 좌표를 계산
 
     // lineGenerator에 의해 생성된 값이 path 요소와고만 호환된다.
     svgContent
-      .append("path")
-      .datum(data)
+      .selectAll(".line")
+      .data([data])
+      .join("path")
+      .attr("class", "line")
       .attr("d", lineGenerator)
       .attr("fill", "none")
       .attr("stroke", "#176B87")
@@ -85,29 +96,74 @@ const D3Zoom = ({ data, id = "myZoomableLineChart", width, height }) => {
     const yAxis = d3.axisLeft(yScale).tickFormat((d) => `$${d}`);
     const xAxis = d3.axisBottom(xScale);
 
-    ctr.select("y-axis").call(yAxis);
+    ctr.select(".y-axis").call(yAxis);
     ctr
       .select(".x-axis")
       .call(xAxis)
       .style("transform", `translateY(${dimensions.ctrHeight}px)`);
+
+    const tooltip = d3.select("#tooltip");
+
+    const tooltipDot = ctr
+      .append("circle")
+      .attr("r", 5)
+      .attr("fill", "#fc8681")
+      .attr("stroke", "black")
+      .attr("stroke-width", 2)
+      .style("opacity", 0)
+      .style("pointer-event", "none");
+
+    // tooltip
+    ctr
+      .append("rect")
+      .attr("width", dimensions.ctrWidth)
+      .attr("height", dimensions.ctrHeight)
+      .style("opacity", 0)
+      .on("mousemove touchmouse", function (event) {
+        const mousePos = d3.pointer(event, this); // 현재 마우스의 좌표 반환
+        const date = xScale.invert(mousePos[0]); // mousePos[0]에 x 좌표가 들어있다.
+        const bisector = d3.bisector(xAccessor).left;
+        const index = bisector(data, date); // dataset에서 date와 일치하는 인덱스
+        // 배열에 요소를 삽입 하려는 것이 아니다.인덱스를 얻으려는 거다
+        const stock = data[index - 1];
+
+        // Update Image
+        tooltipDot
+          .style("opacity", 1)
+          .attr("cy", yScale(yAccessor(stock)))
+          .attr("cx", xScale(xAccessor(stock))) // 두 번째 인자 함수는 데이터와 결합하지 않기 때문에 화살표 함수 안
+          .raise(); // 이미지 앞으로 도형을 올린다.
+
+        tooltip
+          .style("display", "block")
+          .style("top", yScale(yAccessor(stock)) - 20 + "px")
+          .style("left", xScale(xAccessor(stock)) + "px");
+
+        const dateFormat = d3.timeFormat("%B %-d, %Y");
+
+        tooltip.select(".price").text(`$${yAccessor(stock)}`);
+        tooltip.select(".date").text(`${dateFormat(xAccessor(stock))}`);
+      })
+      .on("mouseleave", function (event) {
+        tooltipDot.style("opacity", 0);
+
+        tooltip.style("display", "none");
+      });
 
     // zoom
     const zoomBehavior = d3
       .zoom()
       .scaleExtent([0.5, 4])
       .translateExtent([
-        [dimensions.margins, dimensions.margins],
-        [dimensions.ctrWidth, dimensions.ctrHeight],
+        [-50, dimensions.margins],
+        [dimensions.ctrWidth + 50, dimensions.ctrHeight],
       ])
       .on("zoom", (event) => {
         const zoomState = event.transform;
         setCurrentZoomState(zoomState);
-        console.log(zoomState);
       });
 
     svg.call(zoomBehavior);
-
-    d3.select(ref.current)?.select("svg").remove();
   }, [currentZoomState]);
 
   return (
@@ -115,9 +171,18 @@ const D3Zoom = ({ data, id = "myZoomableLineChart", width, height }) => {
       <div style={{ marginBottom: "2rem" }}>
         <LineChart ref={ref}>
           <g className="container">
+            <defs>
+              <clipPath id={id}>
+                <rect x="0" y="0" width="100%" height="100%" />
+              </clipPath>
+            </defs>
             <g className="content" clipPath={`url(#${id})`}></g>
             <g className="x-axis" />
             <g className="y-axis" />
+            <Tooltip id="tooltip">
+              <Price className="price"></Price>
+              <div className="date"></div>
+            </Tooltip>
           </g>
         </LineChart>
       </div>
